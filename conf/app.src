@@ -1,0 +1,7 @@
+SOURCE_URL=https://github.com/USWebpan/diaspora-1/archive/refs/tags/v0.7.15.0.tar.gz
+SOURCE_SUM=090f177667b0bb2228170b75bb0cc932912f4f4b3ffc6e5a402d0613ce15cce9
+SOURCE_SUM_PRG=sha256sum
+SOURCE_FORMAT=tar.gz
+SOURCE_IN_SUBDIR=true
+SOURCE_FILENAME=
+SOURCE_EXTRACT=true
