@@ -8,6 +8,8 @@ pkg_dependencies="g++ libjemalloc1|libjemalloc2 libjemalloc-dev zlib1g-dev libre
 
 RUBY_VERSION="2.7.1"
 
+MEMORY_NEEDED="2560"
+
 #=================================================
 # PERSONAL HELPERS
 #=================================================
@@ -160,7 +162,7 @@ rbenv_install_dir="/opt/rbenv"
 ruby_version_path="$rbenv_install_dir/versions"
 # RBENV_ROOT is the directory of rbenv, it needs to be loaded as a environment variable.
 export RBENV_ROOT="$rbenv_install_dir"
-
+export rbenv_root="$rbenv_install_dir"
 # Load the version of Ruby for an app, and set variables.
 #
 # ynh_use_ruby has to be used in any app scripts before using Ruby for the first time.

@@ -7,6 +7,7 @@
 #=================================================
 
 source _common.sh
+source ynh_add_swap
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -28,8 +29,8 @@ domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 admin=$YNH_APP_ARG_ADMIN
 is_public=$YNH_APP_ARG_IS_PUBLIC
-# language=$YNH_APP_ARG_LANGUAGE
-# password=$YNH_APP_ARG_PASSWORD
+language=$YNH_APP_ARG_LANGUAGE
+password=$YNH_APP_ARG_PASSWORD
 
 ### If it's a multi-instance app, meaning it can be installed several times independently
 ### The id of the app as stated in the manifest is available as $YNH_APP_ID
@@ -126,19 +127,6 @@ ynh_system_user_create --username=$app --home_dir="$final_path" --use_shell
 #=================================================
 ynh_script_progression --message="Creating a PostgreSQL database..."
 
-# Create PostgreSQL database
-# db_name=$(ynh_sanitize_dbid --db_name="${app}_production")
-# db_user=$(ynh_sanitize_dbid --db_name=$app)
-# ynh_app_setting_set --app=$app --key=db_name --value=$db_name
-# ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
-# ynh_app_setting_set --app=$app --key=db_user --value=$db_user
-
-# ynh_psql_test_if_first_run
-# ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
-# ynh_psql_execute_as_root --sql="ALTER USER $db_user CREATEDB;"
-
-
-
 db_name=$(ynh_sanitize_dbid --db_name="${app}_production")
 db_user=$(ynh_sanitize_dbid --db_name=$app)
 db_pwd=$(ynh_string_random --length=30)
@@ -188,8 +176,20 @@ ynh_add_nginx_config 'web'
 #=================================================
 # SPECIFIC SETUP
 #=================================================
-# ...
+# ADD SWAP IF NEEDED
 #=================================================
+ynh_script_progression --message="Adding swap if needed..."
+
+total_memory=$(ynh_get_ram --total)
+swap_needed=0
+
+if [ $total_memory -lt $MEMORY_NEEDED ]; then
+	# Need a minimum of 2.5Go of memory
+	swap_needed=$(($MEMORY_NEEDED - $total_memory))
+fi
+
+ynh_script_progression --message="Adding $swap_needed Mo to swap..."
+ynh_add_swap --size=$swap_needed
 
 #=================================================
 # INSTALLING RUBY AND BUNDLER
@@ -210,7 +210,7 @@ ynh_script_progression --message="Adding a configuration file..." --time --weigh
 
 database_yml="$final_path/config/database.yml"
 diaspora_toml="$final_path/config/diaspora.toml"
-# language="$(echo $language | head -c 2)"
+language="$(echo $language | head -c 2)"
 
 redis_namespace=${app}_production
 ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace"
@@ -241,13 +241,13 @@ ynh_add_systemd_config --service="$app-web" --template="$app-web.service"
 ynh_add_systemd_config --service="$app-sidekiq" --template="$app-sidekiq.service"
 
 #=================================================
-# INSTALLING DIASPORA
+# INSTALLING ACROPOLIS
 #=================================================
-ynh_script_progression --message="Installing diaspora..."
+ynh_script_progression --message="Installing acropolis..."
 
 pushd "$final_path"
-	exec_login_as $app script/configure_bundler
-	exec_login_as $app bin/bundle install --full-index
+	sudo -u $app $ynh_ruby_load_path script/configure_bundler
+	sudo -u $app $ynh_ruby_load_path bin/bundle install --full-index
 popd
 
 ynh_script_progression --message="Preparing the database..."
@@ -256,6 +256,13 @@ ynh_script_progression --message="Preparing the database..."
 rake_exec="exec_login_as $app RAILS_ENV=production bin/rake"
 ynh_exec_warn_less $rake_exec db:migrate
 ynh_exec_warn_less $rake_exec assets:precompile
+
+#=================================================
+# SETUP THE CRON FILE
+#=================================================
+# ynh_script_progression --message="Setuping the cron file..."
+
+# ynh_add_config --template="../conf/cron" --destination="/etc/cron.d/$app"
 
 #=================================================
 # GENERIC FINALIZATION
