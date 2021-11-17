@@ -8,7 +8,8 @@ User=__APP__
 WorkingDirectory=__FINALPATH__
 Environment="RAILS_ENV=production"
 Environment="PORT=__PORT_WEB__"
-ExecStart=__RBENV_ROOT__/versions/__APP__/bin/bundle exec unicorn -c config/unicorn.rb -D
+Environment=UNICORN_LISTENER=__FINALPATH__/tmp/sockets/unicorn.sock
+ExecStart=__RBENV_ROOT__/versions/__APP__/bin/bundle exec unicorn --config config/unicorn.rb -E production
 ExecReload=/bin/kill -SIGUSR1 $MAINPID
 TimeoutSec=60
 RestartSec=60
