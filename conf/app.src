@@ -1,7 +1,7 @@
-SOURCE_URL=https://github.com/USWebpan/diaspora-1/archive/refs/tags/v0.7.15.0.tar.gz
-SOURCE_SUM=090f177667b0bb2228170b75bb0cc932912f4f4b3ffc6e5a402d0613ce15cce9
+SOURCE_URL=https://github.com/magicstone-dev/acropolis/archive/2b1c78ae680abcf42aa6a859139009defda61c1c.tar.gz
+SOURCE_SUM=552c3564085fbb6acb8a330477bdda5ab43535969651b5076f92e4036499dcbf
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true
-SOURCE_FILENAME=
+SOURCE_FILENAME=2b1c78ae680abcf42aa6a859139009defda61c1c.tar.gz
 SOURCE_EXTRACT=true
