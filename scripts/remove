@@ -7,8 +7,8 @@
 #=================================================
 
 source _common.sh
+source ynh_add_swap
 source /usr/share/yunohost/helpers
-source ynh_install_ruby__2
 
 #=================================================
 # LOAD SETTINGS
@@ -56,7 +56,7 @@ ynh_remove_systemd_config --service="$app-sidekiq"
 # REMOVE THE POSTGRESQL DATABASE
 #=================================================
 
-ynh_script_progression --message="Removing the $db_user PostgreSQL database.."
+ynh_script_progression --message="Removing the PostgreSQL database.."
 
 ynh_psql_remove_db --db_user=$db_user --db_name=$db_name
 
@@ -94,13 +94,16 @@ ynh_remove_nginx_config
 ynh_script_progression --message="Removing various files..." --time --weight=1
 
 # Remove a cron file
-ynh_secure_remove --file="/etc/cron.d/$app"
+# ynh_secure_remove --file="/etc/cron.d/$app"
 
 # Remove a directory securely
 ynh_secure_remove --file="/etc/$app"
 
 # Remove the log files
 ynh_secure_remove --file="/var/log/$app"
+
+# Remove swap
+ynh_del_swap
 
 #=================================================
 # GENERIC FINALIZATION
