@@ -8,10 +8,12 @@ User=__APP__
 WorkingDirectory=__FINALPATH__
 Environment="RAILS_ENV=production"
 Environment="PORT=__PORT_WEB__"
-ExecStart=__RBENV_ROOT__/versions/__APP__/bin/bundle exec puma -C config/puma.rb
+Environment=UNICORN_LISTENER=__FINALPATH__/tmp/sockets/unicorn.sock
+ExecStart=__RBENV_ROOT__/versions/__APP__/bin/bundle exec unicorn --config config/unicorn.rb -E production
 ExecReload=/bin/kill -SIGUSR1 $MAINPID
-TimeoutSec=15
-Restart=always
+TimeoutSec=60
+RestartSec=60
+Restart=on-failure
 StandardError=syslog
 
 [Install]

@@ -22,6 +22,11 @@ admin=$(ynh_app_setting_get --app=$app --key=admin)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 language=$(ynh_app_setting_get --app=$app --key=language)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+redis_namespace=$(ynh_app_setting_get --app=$app --key=db_name)
+db_user=$(ynh_sanitize_dbid --db_name=$app)
+db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
+port_web=$(ynh_app_setting_get --app=$app --key=port_web)
+secret_key_base=$(ynh_app_setting_get --app=$app --key=secret_key_base)
 
 #=================================================
 # CHECK VERSION
@@ -35,6 +40,49 @@ db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 ### UPGRADE_APP should be used to upgrade the core app only if there's an upgrade to do.
 upgrade_type=$(ynh_check_app_version_changed)
 
+#=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+ynh_script_progression --message="Ensuring downward compatibility..."
+
+# Cleaning legacy permissions
+if ynh_legacy_permissions_exists; then
+	ynh_legacy_permissions_delete_all
+
+	ynh_app_setting_delete --app=$app --key=is_public
+fi
+
+# If port_web doesn't exist, create it, needed for old install
+if [[ -z "$port_web" ]]; then
+	port_web=3000
+	ynh_app_setting_set --app=$app --key=port_web --value=$port_web
+fi
+
+# If db_pwd doesn't exist, create it, needed for old install
+if [[ -z "$db_pwd" ]]; then
+	db_pwd=$(ynh_string_random)
+	ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
+	ynh_psql_test_if_first_run
+	sudo --login --user=postgres psql -c"ALTER user $app WITH PASSWORD '$db_pwd'" postgres
+	ynh_replace_string --match_string="DB_PASS=" --replace_string="DB_PASS=${db_pwd}" --target_file="$config"
+fi
+
+# If redis_namespace doesn't exist, create it
+if [[ -z "$redis_namespace" ]]; then
+	redis_namespace=${app}_production
+	ynh_app_setting_set --app=$app --key=redis_namespace --value=$redis_namespace
+fi
+
+# If secret_key_base doesn't exist, retrieve it or create it
+if [[ -z "$secret_key_base" ]]; then
+	secret_key_base=$(grep -oP "SECRET_KEY_BASE=\K\w+" $config)
+	if [[ -z "$secret_key_base" ]]; then
+		secret_key_base=$(ynh_string_random --length=128)
+	fi
+	ynh_app_setting_set --app=$app --key=secret_key_base --value="$secret_key_base"
+fi
+
+ynh_remove_extra_repo
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
@@ -56,50 +104,9 @@ ynh_abort_if_errors
 #=================================================
 ynh_script_progression --message="Stopping a systemd service..." --time --weight=1
 
-ynh_systemd_action --service_name=$app --action="stop" --log_path="/var/log/$app/$app.log"
+ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
 
-#=================================================
-# ENSURE DOWNWARD COMPATIBILITY
-#=================================================
-ynh_script_progression --message="Ensuring downward compatibility..." --time --weight=1
-
-#
-# N.B. : the followings setting migrations snippets are provided as *EXAMPLES*
-# of what you may want to do in some cases (e.g. a setting was not defined on
-# some legacy installs and you therefore want to initiaze stuff during upgrade)
-#
-
-# If db_name doesn't exist, create it
-#if [ -z "$db_name" ]; then
-#	db_name=$(ynh_sanitize_dbid --db_name=$app)
-#	ynh_app_setting_set --app=$app --key=db_name --value=$db_name
-#fi
-
-# If final_path doesn't exist, create it
-#if [ -z "$final_path" ]; then
-#	final_path=/var/www/$app
-#	ynh_app_setting_set --app=$app --key=final_path --value=$final_path
-#fi
-
-### If nobody installed your app before 4.1,
-### then you may safely remove these lines
-
-# Cleaning legacy permissions
-if ynh_legacy_permissions_exists; then
-	ynh_legacy_permissions_delete_all
-
-	ynh_app_setting_delete --app=$app --key=is_public
-fi
-
-if ! ynh_permission_exists --permission="admin"; then
-	# Create the required permissions
-	ynh_permission_create --permission="admin" --url="/admin" --allowed=$admin
-fi
-
-# Create a permission if needed
-if ! ynh_permission_exists --permission="api"; then
-	ynh_permission_create --permission="api" --url="/api" --allowed="visitors" --show_tile="false" --protected="true"
-fi
 
 #=================================================
 # CREATE DEDICATED USER
@@ -137,7 +144,7 @@ chown -R $app:www-data "$final_path"
 ynh_script_progression --message="Upgrading NGINX web server configuration..." --time --weight=1
 
 # Create a dedicated NGINX config
-ynh_add_nginx_config
+ynh_add_nginx_config 'web'
 
 #=================================================
 # UPGRADE DEPENDENCIES
@@ -145,45 +152,52 @@ ynh_add_nginx_config
 ynh_script_progression --message="Upgrading dependencies..." --time --weight=1
 
 ynh_install_app_dependencies $pkg_dependencies
+ynh_install_ruby --ruby_version=$RUBY_VERSION
 
-#=================================================
-# PHP-FPM CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading PHP-FPM configuration..." --time --weight=1
-
-# Create a dedicated PHP-FPM config
-ynh_add_fpm_config
 
 #=================================================
 # SPECIFIC UPGRADE
 #=================================================
-# ...
+
 #=================================================
+# INSTALLING RUBY AND BUNDLER
+#=================================================
+ynh_script_progression --message="Installing Ruby..."
+
+pushd "$final_path"
+	ynh_use_ruby
+	ynh_gem install bundler:1.17.3 --no-document
+	ynh_exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
+popd
 
 #=================================================
 # UPDATE A CONFIG FILE
 #=================================================
 ynh_script_progression --message="Updating a configuration file..." --time --weight=1
 
-### Same as during install
-###
-### The file will automatically be backed-up if it's found to be manually modified (because
-### ynh_add_config keeps track of the file's checksum)
+database_yml="$final_path/config/database.yml"
+diaspora_toml="$final_path/config/diaspora.toml"
+language="$(echo $language | head -c 2)"
 
-ynh_add_config --template="some_config_file" --destination="$final_path/some_config_file"
+redis_namespace=${app}_production
+ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace"
 
-# FIXME: this should be handled by the core in the future
-# You may need to use chmod 600 instead of 400,
-# for example if the app is expected to be able to modify its own config
-chmod 400 "$final_path/some_config_file"
-chown $app:$app "$final_path/some_config_file"
+secret_key_base=$(ynh_string_random --length=128)
+ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"
 
-### For more complex cases where you want to replace stuff using regexes,
-### you shoud rely on ynh_replace_string (which is basically a wrapper for sed)
-### When doing so, you also need to manually call ynh_store_file_checksum
-###
-### ynh_replace_string --match_string="match_string" --replace_string="replace_string" --target_file="$final_path/some_config_file"
-### ynh_store_file_checksum --file="$final_path/some_config_file"
+ynh_add_config --template="$database_yml.example" --destination="$database_yml"
+ynh_add_config --template="$diaspora_toml.example" --destination="$diaspora_toml"
+
+
+ynh_replace_string --match_string="#certificate_authorities = \"/etc/ssl/" --replace_string="certificate_authorities = \"/etc/ssl/" --target_file=$diaspora_toml
+ynh_replace_string --match_string="username: \"postgres\"" --replace_string="username: \"$db_user\"" --target_file=$database_yml
+ynh_replace_string --match_string="password: \"postgres\"" --replace_string="password: \"$db_pwd\"" --target_file=$database_yml
+
+chmod 400 "$database_yml"
+chown $app:$app "$database_yml"
+
+chmod 400 "$diaspora_toml"
+chown $app:$app "$diaspora_toml"
 
 #=================================================
 # SETUP SYSTEMD
@@ -191,7 +205,20 @@ chown $app:$app "$final_path/some_config_file"
 ynh_script_progression --message="Upgrading systemd configuration..." --time --weight=1
 
 # Create a dedicated systemd config
-ynh_add_systemd_config
+ynh_add_systemd_config --service="$app-web" --template="glitchsoc-web.service"
+ynh_add_systemd_config --service="$app-sidekiq" --template="glitchsoc-sidekiq.service"
+
+
+ynh_script_progression --message="Upgrading acropolis..."
+
+pushd "$final_path"
+	sudo -u $app $ynh_ruby_load_path bin/bundle config deployment 'true'
+	sudo -u $app $ynh_ruby_load_path bin/bundle config without 'development test'
+	sudo -u $app $ynh_ruby_load_path bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
+	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/bundle exec rails assets:clean
+	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/bundle exec rails assets:precompile
+	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/bundle exec rails db:migrate
+popd
 
 #=================================================
 # GENERIC FINALIZATION
@@ -208,22 +235,16 @@ ynh_use_logrotate --non-append
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..." --time --weight=1
 
-yunohost service add $app --description="A short description of the app" --log="/var/log/$app/$app.log"
+yunohost service add "$app-web" --description="$app web service"
+yunohost service add "$app-sidekiq" --description="$app sidekiq service"
 
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
 ynh_script_progression --message="Starting a systemd service..." --time --weight=1
 
-ynh_systemd_action --service_name=$app --action="start" --log_path="/var/log/$app/$app.log"
-
-#=================================================
-# UPGRADE FAIL2BAN
-#=================================================
-ynh_script_progression --message="Reconfiguring Fail2Ban..." --time --weight=1
-
-# Create a dedicated Fail2Ban config
-ynh_add_fail2ban_config --logpath="/var/log/nginx/${domain}-error.log" --failregex="Regex to match into the log for a failed login"
+ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on"
+ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Schedules Loaded"
 
 #=================================================
 # RELOAD NGINX
