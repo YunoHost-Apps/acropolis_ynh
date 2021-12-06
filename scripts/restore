@@ -40,10 +40,7 @@ db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
 #=================================================
 ynh_script_progression --message="Validating restoration parameters..." --time --weight=1
 
-ynh_webpath_available --domain=$domain --path_url=$path_url \
-	|| ynh_die --message="Path not available: ${domain}${path_url}"
-test ! -d $final_path \
-	|| ynh_die --message="There is already a directory: $final_path "
+test ! -d $final_path || ynh_die --message="There is already a directory: $final_path "
 
 #=================================================
 # STANDARD RESTORATION STEPS
@@ -110,7 +107,7 @@ ynh_add_swap --size=$swap_needed
 ynh_script_progression --message="Reinstalling dependencies..." --time --weight=1
 
 # Define and install dependencies
-ynh_install_app_dependencies $pkg_dependencies
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
 ynh_install_ruby --ruby_version=$RUBY_VERSION
 
 #=================================================

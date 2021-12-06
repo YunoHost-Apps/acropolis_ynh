@@ -3,8 +3,8 @@
     "id": "acropolis",
     "packaging_format": 1,
     "description": {
-        "en": "Dynamic fork of diaspora*'s federated social network, est. Aug 2021.",
-        "fr": "Fourche dynamique du réseau social fédéré de diaspora*, créé en août 2021."
+        "en": "Dynamic fork of diaspora*'s federated social network",
+        "fr": "Fourche dynamique du réseau social fédéré de diaspora*"
     },
     "version": "2021.12.02~ynh1",
     "url": "https://github.com/magicstone-dev/acropolis",
@@ -18,7 +18,7 @@
         "name": "weex"
     },
     "requirements": {
-        "yunohost": ">= 4.2.0"
+        "yunohost": ">= 4.3.0"
     },
     "multi_instance": true,
     "services": [

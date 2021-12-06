@@ -112,8 +112,9 @@ ynh_script_progression --message="Installing dependencies..." --time --weight=1
 ###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
 
-ynh_install_app_dependencies $pkg_dependencies
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
 ynh_install_ruby --ruby_version=$RUBY_VERSION
+
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
