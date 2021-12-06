@@ -1,9 +1,1 @@
-Some long and extensive description of what the app is and does, lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
-### Features
-
-- Ut enim ad minim veniam, quis nostrud exercitation ullamco ;
-- Laboris nisi ut aliquip ex ea commodo consequat ;
-- Duis aute irure dolor in reprehenderit in voluptate ;
-- Velit esse cillum dolore eu fugiat nulla pariatur ;
-- Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+Acropolis was forked from diaspora* in August 2021. The idea for the fork is to optimize toward community, that is making it as easy as possible to contribute. We're following a protocol that basically says if you are addressing a valid problem, your code gets merged. Everything else follows from that.

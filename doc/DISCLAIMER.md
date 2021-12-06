@@ -1,12 +1,8 @@
-* Any known limitations, constrains or stuff not working, such as (but not limited to):
-    * requiring a full dedicated domain ?
-    * architectures not supported ?
-    * not-working single-sign on or LDAP integration ?
-    * the app requires an important amount of RAM / disk / .. to install or to work properly
-    * etc...
+Acropolis is beta software, and under active development. Use at your own risk!
 
-* Other infos that people should be aware of, such as:
-    * any specific step to perform after installing (such as manually finishing the install, specific admin credentials, ...)
-    * how to configure / administrate the application if it ain't obvious
-    * upgrade process / specificities / things to be aware of ?
-    * security considerations ?
+* This app require a dedicated domain or subdomain.
+* No admin user is created during installation so you will need to sign up and follow manual steps to promote your user to admin.
+* Configuration of the instance requires editing one or more config files which must also be done manually.
+* Single sign-on doesn't work.
+
+You may wish to close or limit registration for your instance of Ecko, so that the instance stays small. We invite you to block remote malicious instances from the administration interface.
