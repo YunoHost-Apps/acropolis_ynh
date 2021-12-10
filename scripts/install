@@ -26,11 +26,8 @@ ynh_abort_if_errors
 #=================================================
 
 domain=$YNH_APP_ARG_DOMAIN
-path_url=$YNH_APP_ARG_PATH
-admin=$YNH_APP_ARG_ADMIN
+path_url="/"
 is_public=$YNH_APP_ARG_IS_PUBLIC
-language=$YNH_APP_ARG_LANGUAGE
-password=$YNH_APP_ARG_PASSWORD
 
 ### If it's a multi-instance app, meaning it can be installed several times independently
 ### The id of the app as stated in the manifest is available as $YNH_APP_ID
@@ -55,7 +52,7 @@ app=$YNH_APP_INSTANCE_NAME
 ### Use the execution time, given by --time, to estimate the weight of a step.
 ### A common way to do it is to set a weight equal to the execution time in second +1.
 ### The execution time is given for the duration since the previous call. So the weight should be applied to this previous call.
-ynh_script_progression --message="Validating installation parameters..." --time --weight=1
+ynh_script_progression --message="Validating installation parameters..." --weight=1
 
 ### If the app uses NGINX as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
 ### If the app provides an internal web server (or uses another application server such as uWSGI), the final path should be "/opt/yunohost/$app"
@@ -68,19 +65,16 @@ ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
-ynh_script_progression --message="Storing installation settings..." --time --weight=1
+ynh_script_progression --message="Storing installation settings..." --weight=1
 
 ynh_app_setting_set --app=$app --key=domain --value=$domain
-ynh_app_setting_set --app=$app --key=path --value=$path_url
-ynh_app_setting_set --app=$app --key=admin --value=$admin
-ynh_app_setting_set --app=$app --key=language --value=$language
 
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
 # FIND AND OPEN A PORT
 #=================================================
-ynh_script_progression --message="Finding an available port..." --time --weight=1
+ynh_script_progression --message="Finding an available port..." --weight=1
 
 ### Use these lines if you have to open a port for the application
 ### `ynh_find_port` will find the first available port starting from the given port.
@@ -102,7 +96,7 @@ ynh_app_setting_set --app=$app --key=port_web --value=$port_web
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Installing dependencies..." --time --weight=1
+ynh_script_progression --message="Installing dependencies..." --weight=1
 
 ### `ynh_install_app_dependencies` allows you to add any "apt" dependencies to the package.
 ### Those deb packages will be installed as dependencies of this package.
@@ -112,12 +106,13 @@ ynh_script_progression --message="Installing dependencies..." --time --weight=1
 ###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
 
-ynh_install_app_dependencies $pkg_dependencies
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
 ynh_install_ruby --ruby_version=$RUBY_VERSION
+
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Configuring system user..." --time --weight=1
+ynh_script_progression --message="Configuring system user..." --weight=1
 
 # Create a system user
 ynh_system_user_create --username=$app --home_dir="$final_path"
@@ -143,7 +138,7 @@ ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS pg_trgm;" --datab
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..." --time --weight=1
+ynh_script_progression --message="Setting up source files..." --weight=1
 
 ### `ynh_setup_source` is used to install an app from a zip or tar.gz file,
 ### downloaded from an upstream source, like a git repository.
@@ -159,6 +154,7 @@ ynh_setup_source --dest_dir="$final_path"
 # files in some cases.
 # But FOR THE LOVE OF GOD, do not allow r/x for "others" on the entire folder -
 # this will be treated as a security issue.
+mkdir -p "$final_path/tmp/pids"
 chmod 750 "$final_path"
 chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
@@ -166,7 +162,7 @@ chown -R $app:www-data "$final_path"
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring NGINX web server..." --time --weight=1
+ynh_script_progression --message="Configuring NGINX web server..." --weight=1
 
 ### `ynh_add_nginx_config` will use the file conf/nginx.conf
 
@@ -207,11 +203,10 @@ popd
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding a configuration file..." --time --weight=1
+ynh_script_progression --message="Adding a configuration file..." --weight=1
 
 database_yml="$final_path/config/database.yml"
 diaspora_toml="$final_path/config/diaspora.toml"
-language="$(echo $language | head -c 2)"
 
 redis_namespace=${app}_production
 ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace"
@@ -236,7 +231,7 @@ chown $app:$app "$diaspora_toml"
 #=================================================
 # SETUP SYSTEMD
 #=================================================
-ynh_script_progression --message="Configuring a systemd service..." --time --weight=1
+ynh_script_progression --message="Configuring a systemd service..." --weight=1
 
 ynh_add_systemd_config --service="$app-web" --template="$app-web.service"
 ynh_add_systemd_config --service="$app-sidekiq" --template="$app-sidekiq.service"
@@ -271,7 +266,7 @@ popd
 #=================================================
 # SETUP LOGROTATE
 #=================================================
-ynh_script_progression --message="Configuring log rotation..." --time --weight=1
+ynh_script_progression --message="Configuring log rotation..." --weight=1
 
 ### `ynh_use_logrotate` is used to configure a logrotate configuration for the logs of this app.
 ### Use this helper only if there is effectively a log file for this app.
@@ -287,7 +282,7 @@ ynh_use_logrotate
 #=================================================
 # INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-ynh_script_progression --message="Integrating service in YunoHost..." --time --weight=1
+ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
 
 yunohost service add "$app-web" --description="$app web service"
 yunohost service add "$app-sidekiq" --description="$app sidekiq service"
@@ -295,15 +290,15 @@ yunohost service add "$app-sidekiq" --description="$app sidekiq service"
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --time --weight=1
+ynh_script_progression --message="Starting a systemd service..." --weight=1
 
-ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on"
-ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Schedules Loaded"
+ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="listening on"
+ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Booted Rails"
 
 #=================================================
 # SETUP SSOWAT
 #=================================================
-ynh_script_progression --message="Configuring permissions..." --time --weight=1
+ynh_script_progression --message="Configuring permissions..." --weight=1
 
 # Make app public if necessary
 if [ $is_public -eq 1 ]
@@ -328,7 +323,7 @@ fi
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --time --weight=1
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --service_name=nginx --action=reload
 
@@ -336,4 +331,4 @@ ynh_systemd_action --service_name=nginx --action=reload
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of $app completed" --time --last
+ynh_script_progression --message="Installation of $app completed" --last

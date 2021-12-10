@@ -3,8 +3,8 @@
     "id": "acropolis",
     "packaging_format": 1,
     "description": {
-        "en": "Dynamic fork of diaspora*'s federated social network, est. Aug 2021.",
-        "fr": "Fourche dynamique du réseau social fédéré de diaspora*, créé en août 2021."
+        "en": "Dynamic fork of diaspora*'s federated social network",
+        "fr": "Fourche dynamique du réseau social fédéré de diaspora*"
     },
     "version": "2021.12.02~ynh1",
     "url": "https://github.com/magicstone-dev/acropolis",
@@ -18,9 +18,9 @@
         "name": "weex"
     },
     "requirements": {
-        "yunohost": ">= 4.2.0"
+        "yunohost": ">= 4.3.0"
     },
-    "multi_instance": true,
+    "multi_instance": false,
     "services": [
         "nginx"
     ],
@@ -31,39 +31,11 @@
                 "type": "domain"
             },
             {
-                "name": "path",
-                "type": "path",
-                "example": "/",
-                "default": "/"
-            },
-            {
-                "name": "admin",
-                "type": "user"
-            },
-            {
                 "name": "is_public",
                 "type": "boolean",
-                "default": true
-            },
-            {
-                "name": "language",
-                "type": "string",
-                "ask": {
-                    "en": "Choose the application language",
-                    "fr": "Choisissez la langue de l'application"
-                },
-                "choices": [
-                    "fr",
-                    "en"
-                ],
-                "default": "fr"
-            },
-            {
-                "name": "password",
-                "type": "password",
+                "default": true,
                 "help": {
-                    "en": "Use the help field to add an information for the admin about this question.",
-                    "fr": "Utilisez le champ aide pour ajouter une information à l'intention de l'administrateur à propos de cette question."
+                    "en": "For federation to work, this needs to be true. False is ok if you want to run a private instance."
                 }
             }
         ]
