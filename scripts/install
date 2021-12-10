@@ -26,11 +26,8 @@ ynh_abort_if_errors
 #=================================================
 
 domain=$YNH_APP_ARG_DOMAIN
-path_url=$YNH_APP_ARG_PATH
-admin=$YNH_APP_ARG_ADMIN
+path_url="/"
 is_public=$YNH_APP_ARG_IS_PUBLIC
-language=$YNH_APP_ARG_LANGUAGE
-password=$YNH_APP_ARG_PASSWORD
 
 ### If it's a multi-instance app, meaning it can be installed several times independently
 ### The id of the app as stated in the manifest is available as $YNH_APP_ID
@@ -71,9 +68,6 @@ ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
 ynh_script_progression --message="Storing installation settings..." --time --weight=1
 
 ynh_app_setting_set --app=$app --key=domain --value=$domain
-ynh_app_setting_set --app=$app --key=path --value=$path_url
-ynh_app_setting_set --app=$app --key=admin --value=$admin
-ynh_app_setting_set --app=$app --key=language --value=$language
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -213,7 +207,6 @@ ynh_script_progression --message="Adding a configuration file..." --time --weigh
 
 database_yml="$final_path/config/database.yml"
 diaspora_toml="$final_path/config/diaspora.toml"
-language="$(echo $language | head -c 2)"
 
 redis_namespace=${app}_production
 ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace"
@@ -299,8 +292,8 @@ yunohost service add "$app-sidekiq" --description="$app sidekiq service"
 #=================================================
 ynh_script_progression --message="Starting a systemd service..." --time --weight=1
 
-ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on"
-ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Schedules Loaded"
+ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="listening on"
+ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Booted Rails"
 
 #=================================================
 # SETUP SSOWAT
