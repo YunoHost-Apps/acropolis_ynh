@@ -112,8 +112,9 @@ ynh_script_progression --message="Installing dependencies..." --time --weight=1
 ###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
 
-ynh_install_app_dependencies $pkg_dependencies
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
 ynh_install_ruby --ruby_version=$RUBY_VERSION
+
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
@@ -159,6 +160,7 @@ ynh_setup_source --dest_dir="$final_path"
 # files in some cases.
 # But FOR THE LOVE OF GOD, do not allow r/x for "others" on the entire folder -
 # this will be treated as a security issue.
+mkdir -p "$final_path/tmp/pids"
 chmod 750 "$final_path"
 chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
