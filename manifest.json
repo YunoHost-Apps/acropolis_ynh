@@ -33,7 +33,10 @@
             {
                 "name": "is_public",
                 "type": "boolean",
-                "default": true
+                "default": true,
+                "help": {
+                    "en": "For federation to work, this needs to be true. False is ok if you want to run a private instance."
+                }
             }
         ]
     }
