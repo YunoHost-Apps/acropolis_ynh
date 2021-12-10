@@ -207,7 +207,6 @@ ynh_script_progression --message="Adding a configuration file..." --weight=1
 
 database_yml="$final_path/config/database.yml"
 diaspora_toml="$final_path/config/diaspora.toml"
-language="$(echo $language | head -c 2)"
 
 redis_namespace=${app}_production
 ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace"
