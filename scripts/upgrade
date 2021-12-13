@@ -204,8 +204,8 @@ chown $app:$app "$diaspora_toml"
 ynh_script_progression --message="Upgrading systemd configuration..." --weight=1
 
 # Create a dedicated systemd config
-ynh_add_systemd_config --service="$app-web" --template="glitchsoc-web.service"
-ynh_add_systemd_config --service="$app-sidekiq" --template="glitchsoc-sidekiq.service"
+ynh_add_systemd_config --service="$app-web" --template="acropolis-web.service"
+ynh_add_systemd_config --service="$app-sidekiq" --template="acropolis-sidekiq.service"
 
 
 ynh_script_progression --message="Upgrading acropolis..."
