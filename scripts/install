@@ -255,7 +255,7 @@ pushd "$final_path"
 	ynh_exec_warn_less $rake_exec assets:precompile
 popd
 
-ynh_script_progression --message="Create admin initial user..."
+ynh_script_progression --message="Create initial admin user..."
 
 pushd "$final_path"
 	rake_exec="sudo -u $app $ynh_ruby_load_path RAILS_ENV=production bin/rake"
