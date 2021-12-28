@@ -53,11 +53,11 @@ module Yunohost
   end
 end
 
-github = JSON.parse(URI.parse('https://api.github.com/repos/magicstone-dev/acropolis/branches/main').read)
+github = JSON.parse(URI.parse('https://api.github.com/repos/tms-phillips/acropolis/branches/bug/issue-97').read)
 last_commit = github["commit"]["sha"]
 version = Date.parse(github["commit"]["commit"]["author"]["date"]).to_s.gsub '-', '.'
 
-url = "https://github.com/magicstone-dev/acropolis/archive/#{last_commit}.tar.gz"
+url = "https://github.com/tms-phillips/acropolis/archive/#{last_commit}.tar.gz"
 
 puts "Downloading last commit at #{url}"
 release_file = URI.parse(url).read
