@@ -259,9 +259,9 @@ pushd "$final_path"
 popd
 
 ynh_script_progression --message="Create initial admin user..."
-ynh_script_progression --message=$admin
-ynh_script_progression --message=$email
-ynh_script_progression --message=$password
+# ynh_script_progression --message=$admin
+# ynh_script_progression --message=$email
+# ynh_script_progression --message=$password
 
 pushd "$final_path"
 	rake_exec="sudo -u $app $ynh_ruby_load_path RAILS_ENV=production bin/rake"
