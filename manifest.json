@@ -36,11 +36,11 @@
             },
             {
                 "name": "email",
-                "type": "user"
+                "type": "email"
             },
             {
                 "name": "password",
-                "type": "user"
+                "type": "password"
             },
             {
                 "name": "is_public",
