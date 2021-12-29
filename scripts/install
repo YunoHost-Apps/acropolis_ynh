@@ -28,9 +28,11 @@ ynh_abort_if_errors
 domain=$YNH_APP_ARG_DOMAIN
 path_url="/"
 is_public=$YNH_APP_ARG_IS_PUBLIC
-# admin=$YNH_APP_ARG_ADMIN
+admin=$YNH_APP_ARG_ADMIN
 # email=$YNH_APP_ARG_EMAIL
 # password=$YNH_APP_ARG_PASSWORD
+
+ynh_script_progression --message="testing.... $domain" --weight=1
 
 ### If it's a multi-instance app, meaning it can be installed several times independently
 ### The id of the app as stated in the manifest is available as $YNH_APP_ID
