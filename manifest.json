@@ -31,6 +31,18 @@
                 "type": "domain"
             },
             {
+                "name": "username",
+                "type": "user"
+            },
+            {
+                "name": "email",
+                "type": "email"
+            },
+            {
+                "name": "password",
+                "type": "password"
+            },
+            {
                 "name": "is_public",
                 "type": "boolean",
                 "default": true,
