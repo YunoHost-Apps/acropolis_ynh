@@ -31,7 +31,15 @@
                 "type": "domain"
             },
             {
-                "name": "admin",
+                "name": "username",
+                "type": "user"
+            },
+            {
+                "name": "email",
+                "type": "user"
+            },
+            {
+                "name": "password",
                 "type": "user"
             },
             {
