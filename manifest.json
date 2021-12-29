@@ -40,7 +40,7 @@
             },
             {
                 "name": "admin",
-                "type": "string"
+                "type": "user"
             },
         ]
     }
