@@ -1,5 +1,5 @@
-SOURCE_URL=https://github.com/tms-phillips/acropolis/archive/8a8cabc606c04981b8ac5afe84f61cac7d97a952.tar.gz
-SOURCE_SUM=2b12854a8d5f6d4e0f5e9753ffa69d0604bd89a7c11809e732c6a75b95a969ee
+SOURCE_URL=https://github.com/magicstone-dev/acropolis/archive/2b1c78ae680abcf42aa6a859139009defda61c1c.tar.gz
+SOURCE_SUM=552c3564085fbb6acb8a330477bdda5ab43535969651b5076f92e4036499dcbf
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true

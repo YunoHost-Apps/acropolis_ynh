@@ -250,18 +250,12 @@ pushd "$final_path"
 	sudo -u $app $ynh_ruby_load_path bin/bundle install --full-index
 popd
 
-ynh_script_progression --message="Preparing the database..."
+ynh_script_progression --message="Preparing the database and create initial admin user..."
 
 pushd "$final_path"
 	rake_exec="sudo -u $app $ynh_ruby_load_path RAILS_ENV=production bin/rake"
 	ynh_exec_warn_less $rake_exec db:migrate
 	ynh_exec_warn_less $rake_exec assets:precompile
-popd
-
-ynh_script_progression --message="Create initial admin user..."
-
-pushd "$final_path"
-	rake_exec="sudo -u $app $ynh_ruby_load_path RAILS_ENV=production bin/rake"
 	ynh_exec_warn_less $rake_exec "admin:create[$username, $email, $password]"
 popd
 
