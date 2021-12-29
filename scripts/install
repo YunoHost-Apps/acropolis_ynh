@@ -265,7 +265,7 @@ ynh_script_progression --message="Create initial admin user..."
 
 pushd "$final_path"
 	rake_exec="sudo -u $app $ynh_ruby_load_path RAILS_ENV=production bin/rake"
-	ynh_exec_warn_less $rake_exec admin:create #<<< ["thomas", "thomas@yopmail.com", "password"]      #[$admin, $email, $password]
+	ynh_exec_warn_less $rake_exec "admin:create[thomas, thomas@yopmail.com, password]"
 popd
 
 #=================================================

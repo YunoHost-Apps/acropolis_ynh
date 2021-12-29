@@ -1,5 +1,5 @@
-SOURCE_URL=https://github.com/tms-phillips/acropolis/archive/dbfc0eb0c63f83fec1eee4ad587159d809fd7b3e.tar.gz
-SOURCE_SUM=4263c4e7a6b21d79e3d94d1649e0e87af2eb5420376c740e41a3a218f9b12911
+SOURCE_URL=https://github.com/tms-phillips/acropolis/archive/8a8cabc606c04981b8ac5afe84f61cac7d97a952.tar.gz
+SOURCE_SUM=2b12854a8d5f6d4e0f5e9753ffa69d0604bd89a7c11809e732c6a75b95a969ee
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true
