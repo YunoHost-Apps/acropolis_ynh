@@ -31,12 +31,15 @@
                 "type": "domain"
             },
             {
-                "name": "username",
+                "name": "admin",
                 "type": "user"
             },
             {
                 "name": "email",
-                "type": "email"
+                "type": "email",
+                "ask": {
+                    "en": "Enter email address for administative notifications."
+                }
             },
             {
                 "name": "password",
