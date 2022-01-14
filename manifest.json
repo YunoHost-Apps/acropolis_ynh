@@ -31,7 +31,7 @@
                 "type": "domain"
             },
             {
-                "name": "username",
+                "name": "admin",
                 "type": "user"
             },
             {
