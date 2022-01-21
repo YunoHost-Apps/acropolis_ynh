@@ -6,7 +6,7 @@
         "en": "Dynamic fork of diaspora*'s federated social network",
         "fr": "Fourche dynamique du réseau social fédéré de diaspora*"
     },
-    "version": "2021.12.29~ynh1",
+    "version": "2022.01.07~ynh1",
     "url": "https://github.com/magicstone-dev/acropolis",
     "upstream": {
         "license": "free",
