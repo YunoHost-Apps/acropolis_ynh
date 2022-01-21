@@ -28,6 +28,9 @@ ynh_abort_if_errors
 domain=$YNH_APP_ARG_DOMAIN
 path_url="/"
 is_public=$YNH_APP_ARG_IS_PUBLIC
+admin=$YNH_APP_ARG_ADMIN
+email=$YNH_APP_ARG_EMAIL
+password=$YNH_APP_ARG_PASSWORD
 
 ### If it's a multi-instance app, meaning it can be installed several times independently
 ### The id of the app as stated in the manifest is available as $YNH_APP_ID
@@ -247,13 +250,15 @@ pushd "$final_path"
 	sudo -u $app $ynh_ruby_load_path bin/bundle install --full-index
 popd
 
-ynh_script_progression --message="Preparing the database..."
+ynh_script_progression --message="Preparing the database and create initial admin user..."
 
 pushd "$final_path"
 	rake_exec="sudo -u $app $ynh_ruby_load_path RAILS_ENV=production bin/rake"
 	ynh_exec_warn_less $rake_exec db:migrate
 	ynh_exec_warn_less $rake_exec assets:precompile
+	ynh_exec_warn_less $rake_exec "admin:create[$admin, $email, $password]"
 popd
+
 #=================================================
 # SETUP THE CRON FILE
 #=================================================

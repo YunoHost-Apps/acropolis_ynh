@@ -3,6 +3,7 @@
 		domain="domain.tld"
 		path="/path"
 		admin="john"
+		email="admin@domain.tld"
 		language="fr"
 		is_public=1
 		password="1Strong-Password"
