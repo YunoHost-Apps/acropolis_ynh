@@ -85,9 +85,8 @@ ynh_system_user_create --username=$app --home_dir="$final_path"
 #=================================================
 ynh_script_progression --message="Creating a PostgreSQL database..."
 
-db_name=$(ynh_sanitize_dbid --db_name="diaspora_production")
-db_user=$(ynh_sanitize_dbid --db_name=$app)
-
+db_name=$(ynh_sanitize_dbid --db_name=$app)
+db_user=$db_name
 ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 ynh_app_setting_set --app=$app --key=db_user --value=$db_user
 ynh_psql_test_if_first_run
@@ -148,7 +147,6 @@ pushd "$final_path"
 	ynh_exec_as $app chmod +x script/server
 popd
 
-
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
@@ -163,13 +161,8 @@ ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace
 secret_key_base=$(ynh_string_random --length=128)
 ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"
 
-ynh_add_config --template="$database_yml.example" --destination="$database_yml"
-ynh_add_config --template="$diaspora_toml.example" --destination="$diaspora_toml"
-
-
-ynh_replace_string --match_string="#certificate_authorities = \"/etc/ssl/" --replace_string="certificate_authorities = \"/etc/ssl/" --target_file=$diaspora_toml
-ynh_replace_string --match_string="username: \"postgres\"" --replace_string="username: \"$db_user\"" --target_file=$database_yml
-ynh_replace_string --match_string="password: \"postgres\"" --replace_string="password: \"$db_pwd\"" --target_file=$database_yml
+ynh_add_config --template="../conf/database_yml.example" --destination="$database_yml"
+ynh_add_config --template="../conf/diaspora_toml.example" --destination="$diaspora_toml"
 
 chmod 400 "$database_yml"
 chown $app:$app "$database_yml"

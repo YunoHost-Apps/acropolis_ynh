@@ -163,7 +163,6 @@ ynh_script_progression --message="Updating a configuration file..." --weight=1
 
 database_yml="$final_path/config/database.yml"
 diaspora_toml="$final_path/config/diaspora.toml"
-language="$(echo $language | head -c 2)"
 
 redis_namespace=${app}_production
 ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace"
@@ -171,13 +170,8 @@ ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace
 secret_key_base=$(ynh_string_random --length=128)
 ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"
 
-ynh_add_config --template="$database_yml.example" --destination="$database_yml"
-ynh_add_config --template="$diaspora_toml.example" --destination="$diaspora_toml"
-
-
-ynh_replace_string --match_string="#certificate_authorities = \"/etc/ssl/" --replace_string="certificate_authorities = \"/etc/ssl/" --target_file=$diaspora_toml
-ynh_replace_string --match_string="username: \"postgres\"" --replace_string="username: \"$db_user\"" --target_file=$database_yml
-ynh_replace_string --match_string="password: \"postgres\"" --replace_string="password: \"$db_pwd\"" --target_file=$database_yml
+ynh_add_config --template="../conf/database_yml.example" --destination="$database_yml"
+ynh_add_config --template="../conf/diaspora_toml.example" --destination="$diaspora_toml"
 
 chmod 400 "$database_yml"
 chown $app:$app "$database_yml"
