@@ -155,8 +155,8 @@ ynh_script_progression --message="Adding a configuration file..." --weight=1
 database_yml="$final_path/config/database.yml"
 diaspora_toml="$final_path/config/diaspora.toml"
 
-ynh_add_config --template="../conf/database_yml.example" --destination="$database_yml"
-ynh_add_config --template="../conf/diaspora_toml.example" --destination="$diaspora_toml"
+ynh_add_config --template="../conf/database.yml.example" --destination="$database_yml"
+ynh_add_config --template="../conf/diaspora.toml.example" --destination="$diaspora_toml"
 
 chmod 400 "$database_yml"
 chown $app:$app "$database_yml"
