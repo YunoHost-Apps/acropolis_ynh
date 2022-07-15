@@ -178,18 +178,17 @@ ynh_add_systemd_config --service="$app-sidekiq" --template="$app-sidekiq.service
 ynh_script_progression --message="Installing acropolis..."
 
 pushd "$final_path"
-	sudo -u $app $ynh_ruby_load_path script/configure_bundler
-	sudo -u $app $ynh_ruby_load_path bin/bundle config set path 'vendor/bundle'
-	sudo -u $app $ynh_ruby_load_path bin/bundle install --full-index
+	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path script/configure_bundler
+	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path bin/bundle config set path 'vendor/bundle'
+	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path bin/bundle install --full-index
 popd
 
 ynh_script_progression --message="Preparing the database and create initial admin user..."
 
 pushd "$final_path"
-	rake_exec="sudo -u $app $ynh_ruby_load_path RAILS_ENV=production bin/rake"
-	ynh_exec_warn_less $rake_exec db:migrate
-	ynh_exec_warn_less $rake_exec assets:precompile
-	ynh_exec_warn_less $rake_exec "admin:create[$admin, $email, $password]"
+	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path RAILS_ENV=production bin/rake db:migrate
+	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path RAILS_ENV=production bin/rake assets:precompile
+	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path RAILS_ENV=production bin/rake "admin:create[$admin, $email, $password]"
 popd
 
 #=================================================
