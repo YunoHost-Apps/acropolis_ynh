@@ -20,25 +20,44 @@ domain=$(ynh_app_setting_get --app=$app --key=domain)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 admin=$(ynh_app_setting_get --app=$app --key=admin)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-language=$(ynh_app_setting_get --app=$app --key=language)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+db_user=$(ynh_app_setting_get --app=$app --key=db_user)
 redis_namespace=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$(ynh_sanitize_dbid --db_name=$app)
-db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
+db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
 port_web=$(ynh_app_setting_get --app=$app --key=port_web)
 secret_key_base=$(ynh_app_setting_get --app=$app --key=secret_key_base)
 
 #=================================================
 # CHECK VERSION
 #=================================================
+ynh_script_progression --message="Checking version..."
 
-### This helper will compare the version of the currently installed app and the version of the upstream package.
-### $upgrade_type can have 2 different values
-### - UPGRADE_APP if the upstream app version has changed
-### - UPGRADE_PACKAGE if only the YunoHost package has changed
-### ynh_check_app_version_changed will stop the upgrade if the app is up to date.
-### UPGRADE_APP should be used to upgrade the core app only if there's an upgrade to do.
 upgrade_type=$(ynh_check_app_version_changed)
+
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=1
+
+# Backup the current version of the app
+ynh_backup_before_upgrade
+ynh_clean_setup () {
+	ynh_clean_check_starting
+	# Restore it if the upgrade fails
+	ynh_restore_upgradebackup
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
+# STOP SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Stopping a systemd service..." --weight=1
+
+ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -83,30 +102,6 @@ if [[ -z "$secret_key_base" ]]; then
 fi
 
 ynh_remove_extra_repo
-#=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
-#=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=1
-
-# Backup the current version of the app
-ynh_backup_before_upgrade
-ynh_clean_setup () {
-	# Restore it if the upgrade fails
-	ynh_restore_upgradebackup
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
-# STANDARD UPGRADE STEPS
-#=================================================
-# STOP SYSTEMD SERVICE
-#=================================================
-ynh_script_progression --message="Stopping a systemd service..." --weight=1
-
-ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
-ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
-
 
 #=================================================
 # CREATE DEDICATED USER
@@ -128,23 +123,9 @@ then
 	ynh_setup_source --dest_dir="$final_path"
 fi
 
-# FIXME: this should be managed by the core in the future
-# Here, as a packager, you may have to tweak the ownerhsip/permissions
-# such that the appropriate users (e.g. maybe www-data) can access
-# files in some cases.
-# But FOR THE LOVE OF GOD, do not allow r/x for "others" on the entire folder -
-# this will be treated as a security issue.
 chmod 750 "$final_path"
 chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
-
-#=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=1
-
-# Create a dedicated NGINX config
-ynh_add_nginx_config 'web'
 
 #=================================================
 # UPGRADE DEPENDENCIES
@@ -152,12 +133,18 @@ ynh_add_nginx_config 'web'
 ynh_script_progression --message="Upgrading dependencies..." --weight=1
 
 ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-ynh_install_ruby --ruby_version=$RUBY_VERSION
+ynh_exec_warn_less ynh_install_ruby --ruby_version=$RUBY_VERSION
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=1
+
+# Create a dedicated NGINX config
+ynh_add_nginx_config
 
 #=================================================
 # SPECIFIC UPGRADE
-#=================================================
-
 #=================================================
 # INSTALLING RUBY AND BUNDLER
 #=================================================
@@ -207,7 +194,9 @@ ynh_script_progression --message="Upgrading systemd configuration..." --weight=1
 ynh_add_systemd_config --service="$app-web" --template="acropolis-web.service"
 ynh_add_systemd_config --service="$app-sidekiq" --template="acropolis-sidekiq.service"
 
-
+#=================================================
+# UPGRADE ACROPOLIS
+#=================================================
 ynh_script_progression --message="Upgrading acropolis..."
 
 pushd "$final_path"
