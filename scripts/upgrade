@@ -22,7 +22,6 @@ admin=$(ynh_app_setting_get --app=$app --key=admin)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 db_user=$(ynh_app_setting_get --app=$app --key=db_user)
-redis_namespace=$(ynh_app_setting_get --app=$app --key=db_name)
 db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
 port_web=$(ynh_app_setting_get --app=$app --key=port_web)
 secret_key_base=$(ynh_app_setting_get --app=$app --key=secret_key_base)
@@ -86,12 +85,6 @@ if [[ -z "$db_pwd" ]]; then
 	ynh_replace_string --match_string="DB_PASS=" --replace_string="DB_PASS=${db_pwd}" --target_file="$config"
 fi
 
-# If redis_namespace doesn't exist, create it
-if [[ -z "$redis_namespace" ]]; then
-	redis_namespace=${app}_production
-	ynh_app_setting_set --app=$app --key=redis_namespace --value=$redis_namespace
-fi
-
 # If secret_key_base doesn't exist, retrieve it or create it
 if [[ -z "$secret_key_base" ]]; then
 	secret_key_base=$(grep -oP "SECRET_KEY_BASE=\K\w+" $config)
@@ -102,6 +95,7 @@ if [[ -z "$secret_key_base" ]]; then
 fi
 
 ynh_remove_extra_repo
+ynh_app_setting_delete --app=$app --key=redis_namespace
 
 #=================================================
 # CREATE DEDICATED USER
@@ -163,9 +157,6 @@ ynh_script_progression --message="Updating a configuration file..." --weight=1
 
 database_yml="$final_path/config/database.yml"
 diaspora_toml="$final_path/config/diaspora.toml"
-
-redis_namespace=${app}_production
-ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace"
 
 secret_key_base=$(ynh_string_random --length=128)
 ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"

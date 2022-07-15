@@ -155,9 +155,6 @@ ynh_script_progression --message="Adding a configuration file..." --weight=1
 database_yml="$final_path/config/database.yml"
 diaspora_toml="$final_path/config/diaspora.toml"
 
-redis_namespace=${app}_production
-ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace"
-
 secret_key_base=$(ynh_string_random --length=128)
 ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"
 
