@@ -204,8 +204,8 @@ yunohost service add "$app-sidekiq" --description="$app sidekiq service"
 #=================================================
 ynh_script_progression --message="Starting a systemd service..." --weight=1
 
-ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on"
-ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Schedules Loaded"
+ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="listening on"
+ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Booted Rails"
 
 #=================================================
 # RELOAD NGINX
