@@ -15,8 +15,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 ynh_clean_setup () {
-	### Remove this function if there's nothing to clean before calling the remove script.
-	true
+	ynh_clean_check_starting
 }
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
@@ -29,38 +28,18 @@ domain=$YNH_APP_ARG_DOMAIN
 path_url="/"
 is_public=$YNH_APP_ARG_IS_PUBLIC
 admin=$YNH_APP_ARG_ADMIN
-email=$YNH_APP_ARG_EMAIL
 password=$YNH_APP_ARG_PASSWORD
+email=$YNH_APP_ARG_EMAIL
 
-### If it's a multi-instance app, meaning it can be installed several times independently
-### The id of the app as stated in the manifest is available as $YNH_APP_ID
-### The instance number is available as $YNH_APP_INSTANCE_NUMBER (equals "1", "2"...)
-### The app instance name is available as $YNH_APP_INSTANCE_NAME
-###    - the first time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample
-###    - the second time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample__2
-###    - ynhexample__{N} for the subsequent installations, with N=3,4...
-### The app instance name is probably what interests you most, since this is
-### guaranteed to be unique. This is a good unique identifier to define installation path,
-### db names...
 app=$YNH_APP_INSTANCE_NAME
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
-### About --weight and --time
-### ynh_script_progression will show to your final users the progression of each scripts.
-### In order to do that, --weight will represent the relative time of execution compared to the other steps in the script.
-### --time is a packager option, it will show you the execution time since the previous call.
-### This option should be removed before releasing your app.
-### Use the execution time, given by --time, to estimate the weight of a step.
-### A common way to do it is to set a weight equal to the execution time in second +1.
-### The execution time is given for the duration since the previous call. So the weight should be applied to this previous call.
 ynh_script_progression --message="Validating installation parameters..." --weight=1
 
-### If the app uses NGINX as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
-### If the app provides an internal web server (or uses another application server such as uWSGI), the final path should be "/opt/yunohost/$app"
 final_path=/var/www/$app
-# test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
+test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
 
 # Register (book) web path
 ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
@@ -71,6 +50,8 @@ ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
 ynh_script_progression --message="Storing installation settings..." --weight=1
 
 ynh_app_setting_set --app=$app --key=domain --value=$domain
+ynh_app_setting_set --app=$app --key=path --value=$path_url
+ynh_app_setting_set --app=$app --key=admin --value=$admin
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -79,38 +60,17 @@ ynh_app_setting_set --app=$app --key=domain --value=$domain
 #=================================================
 ynh_script_progression --message="Finding an available port..." --weight=1
 
-### Use these lines if you have to open a port for the application
-### `ynh_find_port` will find the first available port starting from the given port.
-### If you're not using these lines:
-###		- Remove the section "CLOSE A PORT" in the remove script
-
 # Find an available port
 port_web=$(ynh_find_port --port=3000)
 ynh_app_setting_set --app=$app --key=port_web --value=$port_web
-
-# Optional: Expose this port publicly
-# (N.B.: you only need to do this if the app actually needs to expose the port publicly.
-# If you do this and the app doesn't actually need you are CREATING SECURITY HOLES IN THE SERVER !)
-
-# Open the port
-# ynh_script_progression --message="Configuring firewall..." --time --weight=1
-# ynh_exec_warn_less yunohost firewall allow --no-upnp TCP $port
 
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
 ynh_script_progression --message="Installing dependencies..." --weight=1
 
-### `ynh_install_app_dependencies` allows you to add any "apt" dependencies to the package.
-### Those deb packages will be installed as dependencies of this package.
-### If you're not using this helper:
-###		- Remove the section "REMOVE DEPENDENCIES" in the remove script
-###		- Remove the variable "pkg_dependencies" in _common.sh
-###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
-###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
-
 ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-ynh_install_ruby --ruby_version=$RUBY_VERSION
+ynh_exec_warn_less ynh_install_ruby --ruby_version=$RUBY_VERSION
 
 #=================================================
 # CREATE DEDICATED USER
@@ -125,38 +85,25 @@ ynh_system_user_create --username=$app --home_dir="$final_path"
 #=================================================
 ynh_script_progression --message="Creating a PostgreSQL database..."
 
-db_name=$(ynh_sanitize_dbid --db_name="diaspora_production")
-db_user=$(ynh_sanitize_dbid --db_name=$app)
-db_pwd=$(ynh_string_random --length=30)
-
+db_name=$(ynh_sanitize_dbid --db_name=$app)
+db_user=$db_name
 ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 ynh_app_setting_set --app=$app --key=db_user --value=$db_user
-ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
 ynh_psql_test_if_first_run
-ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
-# Set extensions
+ynh_psql_setup_db --db_user=$db_user --db_name=$db_name
 ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS hstore;" --database=$db_name
 ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS pg_trgm;" --database=$db_name
+db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression --message="Setting up source files..." --weight=1
 
-### `ynh_setup_source` is used to install an app from a zip or tar.gz file,
-### downloaded from an upstream source, like a git repository.
-### `ynh_setup_source` use the file conf/app.src
-
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$final_path"
 
-# FIXME: this should be managed by the core in the future
-# Here, as a packager, you may have to tweak the ownerhsip/permissions
-# such that the appropriate users (e.g. maybe www-data) can access
-# files in some cases.
-# But FOR THE LOVE OF GOD, do not allow r/x for "others" on the entire folder -
-# this will be treated as a security issue.
 mkdir -p "$final_path/tmp/pids"
 chmod 750 "$final_path"
 chmod -R o-rwx "$final_path"
@@ -167,10 +114,8 @@ chown -R $app:www-data "$final_path"
 #=================================================
 ynh_script_progression --message="Configuring NGINX web server..." --weight=1
 
-### `ynh_add_nginx_config` will use the file conf/nginx.conf
-
 # Create a dedicated NGINX config
-ynh_add_nginx_config 'web'
+ynh_add_nginx_config
 
 #=================================================
 # SPECIFIC SETUP
@@ -202,7 +147,6 @@ pushd "$final_path"
 	ynh_exec_as $app chmod +x script/server
 popd
 
-
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
@@ -211,19 +155,8 @@ ynh_script_progression --message="Adding a configuration file..." --weight=1
 database_yml="$final_path/config/database.yml"
 diaspora_toml="$final_path/config/diaspora.toml"
 
-redis_namespace=${app}_production
-ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace"
-
-secret_key_base=$(ynh_string_random --length=128)
-ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"
-
-ynh_add_config --template="$database_yml.example" --destination="$database_yml"
-ynh_add_config --template="$diaspora_toml.example" --destination="$diaspora_toml"
-
-
-ynh_replace_string --match_string="#certificate_authorities = \"/etc/ssl/" --replace_string="certificate_authorities = \"/etc/ssl/" --target_file=$diaspora_toml
-ynh_replace_string --match_string="username: \"postgres\"" --replace_string="username: \"$db_user\"" --target_file=$database_yml
-ynh_replace_string --match_string="password: \"postgres\"" --replace_string="password: \"$db_pwd\"" --target_file=$database_yml
+ynh_add_config --template="../conf/database.yml.example" --destination="$database_yml"
+ynh_add_config --template="../conf/diaspora.toml.example" --destination="$diaspora_toml"
 
 chmod 400 "$database_yml"
 chown $app:$app "$database_yml"
@@ -245,26 +178,18 @@ ynh_add_systemd_config --service="$app-sidekiq" --template="$app-sidekiq.service
 ynh_script_progression --message="Installing acropolis..."
 
 pushd "$final_path"
-	sudo -u $app $ynh_ruby_load_path script/configure_bundler
-	sudo -u $app $ynh_ruby_load_path bin/bundle config set path 'vendor/bundle'
-	sudo -u $app $ynh_ruby_load_path bin/bundle install --full-index
+	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path script/configure_bundler
+	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path bin/bundle config set path 'vendor/bundle'
+	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path bin/bundle install --full-index
 popd
 
 ynh_script_progression --message="Preparing the database and create initial admin user..."
 
 pushd "$final_path"
-	rake_exec="sudo -u $app $ynh_ruby_load_path RAILS_ENV=production bin/rake"
-	ynh_exec_warn_less $rake_exec db:migrate
-	ynh_exec_warn_less $rake_exec assets:precompile
-	ynh_exec_warn_less $rake_exec "admin:create[$admin, $email, $password]"
+	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path RAILS_ENV=production bin/rake db:migrate
+	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path RAILS_ENV=production bin/rake assets:precompile
+	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path RAILS_ENV=production bin/rake "admin:create[$admin, $email, $password]"
 popd
-
-#=================================================
-# SETUP THE CRON FILE
-#=================================================
-# ynh_script_progression --message="Setuping the cron file..."
-
-# ynh_add_config --template="../conf/cron" --destination="/etc/cron.d/$app"
 
 #=================================================
 # GENERIC FINALIZATION
@@ -272,14 +197,6 @@ popd
 # SETUP LOGROTATE
 #=================================================
 ynh_script_progression --message="Configuring log rotation..." --weight=1
-
-### `ynh_use_logrotate` is used to configure a logrotate configuration for the logs of this app.
-### Use this helper only if there is effectively a log file for this app.
-### If you're not using this helper:
-###		- Remove the section "BACKUP LOGROTATE" in the backup script
-###		- Remove also the section "REMOVE LOGROTATE CONFIGURATION" in the remove script
-###		- As well as the section "RESTORE THE LOGROTATE CONFIGURATION" in the restore script
-###		- And the section "SETUP LOGROTATE" in the upgrade script
 
 # Use logrotate to manage application logfile(s)
 ynh_use_logrotate
@@ -312,18 +229,6 @@ then
 	# The "main" permission is automatically created before the install script.
 	ynh_permission_update --permission="main" --add="visitors"
 fi
-
-### N.B. : the following extra permissions only make sense if your app
-### does have for example an admin interface or an API.
-
-# Only the admin can access the admin panel of the app (if the app has an admin panel)
-# ynh_permission_create --permission="admin" --url="/admin" --allowed=$admin
-
-# Everyone can access the API part
-# We don't want to display the tile in the SSO so we put --show_tile="false"
-# And we don't want the YunoHost admin to be able to remove visitors group to this permission, so we put --protected="true"
-# ynh_permission_create --permission="api" --url="/api" --allowed="visitors" --show_tile="false" --protected="true"
-
 
 #=================================================
 # RELOAD NGINX

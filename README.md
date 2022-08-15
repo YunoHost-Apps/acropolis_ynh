@@ -5,7 +5,7 @@ It shall NOT be edited by hand.
 
 # Acropolis for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/acropolis.svg)](https://dash.yunohost.org/appci/app/acropolis) ![](https://ci-apps.yunohost.org/ci/badges/acropolis.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/acropolis.maintain.svg)  
+[![Integration level](https://dash.yunohost.org/integration/acropolis.svg)](https://dash.yunohost.org/appci/app/acropolis) ![Working status](https://ci-apps.yunohost.org/ci/badges/acropolis.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/acropolis.maintain.svg)  
 [![Install Acropolis with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=acropolis)
 
 *[Lire ce readme en français.](./README_fr.md)*
@@ -19,13 +19,6 @@ Acropolis was forked from diaspora* in August 2021. The idea for the fork is to 
 
 
 **Shipped version:** 2022.01.29~ynh1
-
-
-
-## Screenshots
-
-![](./doc/screenshots/example.jpg)
-
 ## Disclaimers / important information
 
 Acropolis is beta software, and under active development. Use at your own risk!
@@ -39,20 +32,21 @@ You may wish to close or limit registration for your instance of Ecko, so that t
 
 ## Documentation and resources
 
-* Official app website: https://magicstone.dev
-* Upstream app code repository: https://github.com/magicstone-dev/acropolis
-* YunoHost documentation for this app: https://yunohost.org/app_acropolis
-* Report a bug: https://github.com/YunoHost-Apps/acropolis_ynh/issues
+* Official app website: <https://magicstone.dev>
+* Upstream app code repository: <https://github.com/magicstone-dev/acropolis>
+* YunoHost documentation for this app: <https://yunohost.org/app_acropolis>
+* Report a bug: <https://github.com/YunoHost-Apps/acropolis_ynh/issues>
 
 ## Developer info
 
 Please send your pull request to the [testing branch](https://github.com/YunoHost-Apps/acropolis_ynh/tree/testing).
 
 To try the testing branch, please proceed like that.
-```
+
+``` bash
 sudo yunohost app install https://github.com/YunoHost-Apps/acropolis_ynh/tree/testing --debug
 or
 sudo yunohost app upgrade acropolis -u https://github.com/YunoHost-Apps/acropolis_ynh/tree/testing --debug
 ```
 
-**More info regarding app packaging:** https://yunohost.org/packaging_apps
+**More info regarding app packaging:** <https://yunohost.org/packaging_apps>
