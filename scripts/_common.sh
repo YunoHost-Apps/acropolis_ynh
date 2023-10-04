@@ -4,7 +4,7 @@
 # COMMON VARIABLES
 #=================================================
 
-pkg_dependencies="g++ libjemalloc1|libjemalloc2 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-dev libapr1-dev libxslt1-dev libidn11-dev libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli nodejs cmake pkg-config"
+pkg_dependencies="g++ zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-dev libapr1-dev libxslt1-dev libidn11-dev libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli nodejs cmake pkg-config"
 
 RUBY_VERSION="2.7.1"
 
@@ -360,7 +360,7 @@ ynh_install_ruby () {
         final_ruby_version=$ruby_version
     fi
     ynh_print_info --message="Installing Ruby-$final_ruby_version"
-    CONFIGURE_OPTS="--disable-install-doc --with-jemalloc" MAKE_OPTS="-j2" rbenv install --skip-existing $final_ruby_version
+    CONFIGURE_OPTS="--disable-install-doc" MAKE_OPTS="-j2" rbenv install --skip-existing $final_ruby_version
 
     # Store ruby_version into the config of this app
     ynh_app_setting_set --app=$YNH_APP_INSTANCE_NAME --key=ruby_version --value=$final_ruby_version
