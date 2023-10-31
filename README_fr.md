@@ -5,21 +5,21 @@ It shall NOT be edited by hand.
 
 # Acropolis pour YunoHost
 
-[![Niveau d'intégration](https://dash.yunohost.org/integration/acropolis.svg)](https://dash.yunohost.org/appci/app/acropolis) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/acropolis.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/acropolis.maintain.svg)  
+[![Niveau d’intégration](https://dash.yunohost.org/integration/acropolis.svg)](https://dash.yunohost.org/appci/app/acropolis) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/acropolis.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/acropolis.maintain.svg)
+
 [![Installer Acropolis avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=acropolis)
 
 *[Read this readme in english.](./README.md)*
 
-> *Ce package vous permet d'installer Acropolis rapidement et simplement sur un serveur YunoHost.
-Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l'installer et en profiter.*
+> *Ce package vous permet d’installer Acropolis rapidement et simplement sur un serveur YunoHost.
+Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l’installer et en profiter.*
 
-## Vue d'ensemble
+## Vue d’ensemble
 
 Acropolis was forked from diaspora* in August 2021. The idea for the fork is to optimize toward community, that is making it as easy as possible to contribute. We're following a protocol that basically says if you are addressing a valid problem, your code gets merged. Everything else follows from that.
 
 
-**Version incluse :** 2022.01.29~ynh1
-
+**Version incluse :** 2022.01.29~ynh1
 ## Avertissements / informations importantes
 
 Acropolis is beta software, and under active development. Use at your own risk!
@@ -33,9 +33,9 @@ You may wish to close or limit registration for your instance of Ecko, so that t
 
 ## Documentations et ressources
 
-* Site officiel de l'app : <https://magicstone.dev>
-* Dépôt de code officiel de l'app : <https://github.com/magicstone-dev/acropolis>
-* Documentation YunoHost pour cette app : <https://yunohost.org/app_acropolis>
+* Site officiel de l’app : <https://magicstone.dev>
+* Dépôt de code officiel de l’app : <https://github.com/magicstone-dev/acropolis>
+* YunoHost Store: <https://apps.yunohost.org/app/acropolis>
 * Signaler un bug : <https://github.com/YunoHost-Apps/acropolis_ynh/issues>
 
 ## Informations pour les développeurs
@@ -50,4 +50,4 @@ ou
 sudo yunohost app upgrade acropolis -u https://github.com/YunoHost-Apps/acropolis_ynh/tree/testing --debug
 ```
 
-**Plus d'infos sur le packaging d'applications :** <https://yunohost.org/packaging_apps>
+**Plus d’infos sur le packaging d’applications :** <https://yunohost.org/packaging_apps>

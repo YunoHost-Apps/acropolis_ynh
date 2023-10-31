@@ -5,7 +5,8 @@ It shall NOT be edited by hand.
 
 # Acropolis for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/acropolis.svg)](https://dash.yunohost.org/appci/app/acropolis) ![Working status](https://ci-apps.yunohost.org/ci/badges/acropolis.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/acropolis.maintain.svg)  
+[![Integration level](https://dash.yunohost.org/integration/acropolis.svg)](https://dash.yunohost.org/appci/app/acropolis) ![Working status](https://ci-apps.yunohost.org/ci/badges/acropolis.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/acropolis.maintain.svg)
+
 [![Install Acropolis with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=acropolis)
 
 *[Lire ce readme en français.](./README_fr.md)*
@@ -19,7 +20,6 @@ Acropolis was forked from diaspora* in August 2021. The idea for the fork is to 
 
 
 **Shipped version:** 2022.01.29~ynh1
-
 ## Disclaimers / important information
 
 Acropolis is beta software, and under active development. Use at your own risk!
@@ -35,7 +35,7 @@ You may wish to close or limit registration for your instance of Ecko, so that t
 
 * Official app website: <https://magicstone.dev>
 * Upstream app code repository: <https://github.com/magicstone-dev/acropolis>
-* YunoHost documentation for this app: <https://yunohost.org/app_acropolis>
+* YunoHost Store: <https://apps.yunohost.org/app/acropolis>
 * Report a bug: <https://github.com/YunoHost-Apps/acropolis_ynh/issues>
 
 ## Developer info
