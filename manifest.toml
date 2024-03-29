@@ -51,6 +51,8 @@ ram.runtime = "50M" # FIXME: replace with an **estimate** minimum ram requiremen
     url = "https://github.com/magicstone-dev/acropolis/archive/f586f64b4cee0b2a50f45b5cf6de4e1fd749def8.tar.gz"
     sha256 = "716d9c5e1e8e7d2694dbe6d2c1b5e48e5a5537a29ec8a8d0a722e6750fffae56"
 
+    autoupdate.strategy = "latest_github_commit"
+
     [resources.system_user]
 
     [resources.install_dir]
