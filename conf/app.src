@@ -1,7 +1,0 @@
-SOURCE_URL=https://github.com/magicstone-dev/acropolis/archive/f586f64b4cee0b2a50f45b5cf6de4e1fd749def8.tar.gz
-SOURCE_SUM=716d9c5e1e8e7d2694dbe6d2c1b5e48e5a5537a29ec8a8d0a722e6750fffae56
-SOURCE_SUM_PRG=sha256sum
-SOURCE_FORMAT=tar.gz
-SOURCE_IN_SUBDIR=true
-SOURCE_FILENAME=
-SOURCE_EXTRACT=true
