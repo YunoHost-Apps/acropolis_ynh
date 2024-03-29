@@ -19,7 +19,7 @@ Il NE doit PAS être modifié à la main.
 Acropolis was forked from diaspora* in August 2021. The idea for the fork is to optimize toward community, that is making it as easy as possible to contribute. We're following a protocol that basically says if you are addressing a valid problem, your code gets merged. Everything else follows from that.
 
 
-**Version incluse :** 2022.01.29~ynh1
+**Version incluse :** 2022.01.29~ynh2
 ## Avertissements / informations importantes
 
 Acropolis is beta software, and under active development. Use at your own risk!
