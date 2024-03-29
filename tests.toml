@@ -6,9 +6,7 @@ test_format = 1.0
 
     args.email = "admin@domain.tld"
 
-    exclude = [
-        "install.subdir"
-    ]
+    exclude = ["change_url"]
 
     [default.test_upgrade_from.dc712d6bf6dd2f67b9863b03b8a6a3705713a81c]
     name = "previous version"
