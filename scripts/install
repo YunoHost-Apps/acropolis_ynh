@@ -1,8 +1,6 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC START
-#=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
@@ -13,14 +11,30 @@ source /usr/share/yunohost/helpers
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Installing dependencies..." --weight=1
+ynh_script_progression --message="Installing Ruby..." --weight=1
 
 ynh_exec_warn_less ynh_install_ruby --ruby_version="$RUBY_VERSION"
 
 #=================================================
+# ADD SWAP IF NEEDED
+#=================================================
+ynh_script_progression --message="Adding swap if needed..."
+
+total_memory=$(ynh_get_ram --total)
+swap_needed=0
+
+if (( MEMORY_NEEDED > total_memory )); then
+    # Need a minimum of 2.5Go of memory
+    swap_needed=$((MEMORY_NEEDED - total_memory))
+fi
+
+ynh_script_progression --message="Adding $swap_needed Mo to swap..."
+ynh_add_swap --size=$swap_needed
+
+#=================================================
 # CREATE A POSTGRESQL DATABASE
 #=================================================
-ynh_script_progression --message="Setting a PostgreSQL database..."
+ynh_script_progression --message="Setting the PostgreSQL database..."
 
 ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS hstore;" --database="$db_name"
 ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS pg_trgm;" --database="$db_name"
@@ -33,116 +47,72 @@ ynh_script_progression --message="Setting up source files..." --weight=1
 ynh_setup_source --dest_dir="$install_dir"
 
 mkdir -p "$install_dir/tmp/pids"
-chmod 750 "$install_dir"
+
 chmod -R o-rwx "$install_dir"
-chown -R $app:www-data "$install_dir"
-
-#=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
-
-ynh_add_nginx_config
-
-#=================================================
-# SPECIFIC SETUP
-#=================================================
-# ADD SWAP IF NEEDED
-#=================================================
-ynh_script_progression --message="Adding swap if needed..."
-
-total_memory=$(ynh_get_ram --total)
-swap_needed=0
-
-if (( MEMORY_NEEDED > total_memory )); then
-	# Need a minimum of 2.5Go of memory
-	swap_needed=$((MEMORY_NEEDED - total_memory))
-fi
-
-ynh_script_progression --message="Adding $swap_needed Mo to swap..."
-ynh_add_swap --size=$swap_needed
-
-#=================================================
-# INSTALLING RUBY AND BUNDLER
-#=================================================
-ynh_script_progression --message="Installing Ruby..."
-
-pushd "$install_dir"
-	ynh_use_ruby
-	ynh_gem install bundler:1.17.3 --no-document
-	ynh_exec_as "$app" echo "gem: --no-ri --no-rdoc" >> "$install_dir/.gemrc"
-	ynh_exec_as "$app" chmod +x script/server
-popd
+chown -R "$app:www-data" "$install_dir"
 
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
 ynh_script_progression --message="Adding a configuration file..." --weight=1
 
-database_yml="$install_dir/config/database.yml"
-diaspora_toml="$install_dir/config/diaspora.toml"
+ynh_add_config --template="database.yml.example" --destination="$install_dir/config/database.yml"
+ynh_add_config --template="diaspora.toml.example" --destination="$install_dir/config/diaspora.toml"
 
-ynh_add_config --template="../conf/database.yml.example" --destination="$database_yml"
-ynh_add_config --template="../conf/diaspora.toml.example" --destination="$diaspora_toml"
-
-chmod 400 "$database_yml"
-chown $app:$app "$database_yml"
-
-chmod 400 "$diaspora_toml"
-chown $app:$app "$diaspora_toml"
+chmod 400 "$install_dir/config/database.yml"
+chmod 400 "$install_dir/config/diaspora.toml"
+chown "$app:$app" "$install_dir/config/database.yml"
+chown "$app:$app" "$install_dir/config/diaspora.toml"
 
 #=================================================
-# SETUP SYSTEMD
+# INSTALLING RUBY AND BUNDLER
 #=================================================
-ynh_script_progression --message="Configuring a systemd service..." --weight=1
-
-ynh_add_systemd_config --service="$app-web" --template="$app-web.service"
-ynh_add_systemd_config --service="$app-sidekiq" --template="$app-sidekiq.service"
-
-#=================================================
-# INSTALLING ACROPOLIS
-#=================================================
-ynh_script_progression --message="Installing acropolis..."
+ynh_script_progression --message="Building $app..."
 
 pushd "$install_dir"
-	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path script/configure_bundler
-	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path bin/bundle config set path 'vendor/bundle'
-	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path bin/bundle install --full-index
+    ynh_use_ruby
+    ynh_gem install bundler:1.17.3 --no-document
+    ynh_exec_as "$app" echo "gem: --no-ri --no-rdoc" >> "$install_dir/.gemrc"
+    ynh_exec_as "$app" chmod +x script/server
+popd
+
+pushd "$install_dir"
+    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" script/configure_bundler
+    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" bin/bundle config set path 'vendor/bundle'
+    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" bin/bundle install --full-index
 popd
 
 ynh_script_progression --message="Preparing the database and create initial admin user..."
 
 pushd "$install_dir"
-	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path RAILS_ENV=production bin/rake db:migrate
-	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path RAILS_ENV=production bin/rake assets:precompile
-	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path RAILS_ENV=production bin/rake "admin:create[$admin, $email, $password]"
+    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" RAILS_ENV=production bin/rake db:migrate
+    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" RAILS_ENV=production bin/rake assets:precompile
+    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" RAILS_ENV=production bin/rake "admin:create[$admin, $email, $password]"
 popd
 
 #=================================================
-# GENERIC FINALIZATION
+# SYSTEM CONFIGURATION
 #=================================================
-# SETUP LOGROTATE
-#=================================================
-ynh_script_progression --message="Configuring log rotation..." --weight=1
+ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
+
+ynh_add_nginx_config
+
+ynh_add_systemd_config --service="$app-web" --template="$app-web.service"
+yunohost service add "$app-web" --description="$app web service"
+
+ynh_add_systemd_config --service="$app-sidekiq" --template="$app-sidekiq.service"
+yunohost service add "$app-sidekiq" --description="$app sidekiq service"
 
 # Use logrotate to manage application logfile(s)
 ynh_use_logrotate
-
-#=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
-
-yunohost service add "$app-web" --description="$app web service"
-yunohost service add "$app-sidekiq" --description="$app sidekiq service"
 
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
 ynh_script_progression --message="Starting a systemd service..." --weight=1
 
-ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="listening on"
-ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Booted Rails"
+ynh_systemd_action --service_name="${app}-web" --action="start" --log_path=systemd --line_match="listening on"
+ynh_systemd_action --service_name="${app}-sidekiq" --action="start" --log_path=systemd --line_match="Booted Rails"
 
 #=================================================
 # END OF SCRIPT
