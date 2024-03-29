@@ -33,15 +33,15 @@ ynh_script_progression --message="Updating Ruby..." --weight=1
 
 ynh_exec_warn_less ynh_install_ruby --ruby_version="$RUBY_VERSION"
 
-
-
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression --message="Upgrading source files..." --weight=1
 
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --dest_dir="$install_dir"
+ynh_setup_source --dest_dir="$install_dir" --full_replace=1 --keep="config/database.yml config/diaspora.toml"
+
+mkdir -p "$install_dir/tmp/pids"
 
 chmod -R o-rwx "$install_dir"
 chown -R "$app:www-data" "$install_dir"
