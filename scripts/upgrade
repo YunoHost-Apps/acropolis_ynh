@@ -71,7 +71,7 @@ pushd "$install_dir"
 
     ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" bin/bundle config deployment 'true'
     ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" bin/bundle config without 'development test'
-    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
+    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" bin/bundle install --full-index -j$(getconf _NPROCESSORS_ONLN)
 
     ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" RAILS_ENV=production bin/rake assets:clean
     ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" RAILS_ENV=production bin/rake assets:precompile
