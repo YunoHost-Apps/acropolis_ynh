@@ -78,7 +78,7 @@ pushd "$install_dir"
 
     ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" script/configure_bundler
     ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" bin/bundle config set path 'vendor/bundle'
-    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" bin/bundle install --full-index
+    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_ruby_load_path" bin/bundle install --full-index --with postgresql
 popd
 
 ynh_script_progression --message="Preparing the database and create initial admin user..."
