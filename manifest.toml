@@ -17,7 +17,7 @@ website = "https://magicstone.dev"
 code = "https://github.com/magicstone-dev/acropolis"
 
 [integration]
-yunohost = ">=11.2"
+yunohost = ">=11.2.12"
 architectures = "all"
 multi_instance = false
 
