@@ -32,7 +32,6 @@ ynh_remove_nginx_config
 
 ynh_secure_remove --file="/etc/$app"
 
-ynh_secure_remove --file="/var/log/$app"
 
 ynh_script_progression --message="Removing Swap..." --weight=1
 ynh_del_swap
