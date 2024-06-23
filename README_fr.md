@@ -20,6 +20,10 @@ Acropolis was forked from diaspora* in August 2021. The idea for the fork is to 
 
 
 **Version incluse :** 2022.01.29~ynh2
+## :red_circle: Anti-fonctionnalités
+
+- **Application non maintenue **: Ce logiciel n'est plus maintenu. Attendez-vous à ce qu'il ne fonctionne plus avec le temps, et que l'on découvre des failles de sécurité qui ne seront pas corrigées, etc.
+
 ## Documentations et ressources
 
 - Site officiel de l’app : <https://magicstone.dev>
